@@ -20,7 +20,7 @@ except ImportError:
 app = Flask(__name__)
 
 # Airtable Configuration
-AIRTABLE_BASE_ID = os.environ.get('AIRTABLE_BASE_ID', 'appZOdJaRPiwcygdR')
+AIRTABLE_BASE_ID = 'appZOdJaRPiwcygdR'
 AIRTABLE_TABLE_NAME = os.environ.get('AIRTABLE_TABLE_NAME', 'Table 1')
 AIRTABLE_TOKEN = os.environ.get('AIRTABLE_TOKEN', '')
 REFRESH_INTERVAL_MINUTES = int(os.environ.get('REFRESH_INTERVAL_MINUTES', '30'))
