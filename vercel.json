@@ -1,21 +1,8 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "app.py",
-      "use": "@vercel/python"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "app.py"
-    }
-  ],
+  "builds": [{"src": "app.py", "use": "@vercel/python"}],
+  "routes": [{"src": "/(.*)", "dest": "app.py"}],
   "env": {
-    "AIRTABLE_BASE_ID": "@airtable_base_id",
-    "AIRTABLE_TABLE_NAME": "@airtable_table_name",
-    "AIRTABLE_TOKEN": "@airtable_token",
     "REFRESH_INTERVAL_MINUTES": "30"
   }
 }
