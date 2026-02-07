@@ -20,7 +20,7 @@ except ImportError:
 app = Flask(__name__)
 
 # Airtable Configuration
-AIRTABLE_BASE_ID = 'appZOdJaRPiwcygdR'
+AIRTABLE_BASE_ID = os.environ.get('AIRTABLE_BASE_ID', 'appZOdJaRPiwcygdR')
 AIRTABLE_TABLE_NAME = os.environ.get('AIRTABLE_TABLE_NAME', 'Table 1')
 AIRTABLE_TOKEN = os.environ.get('AIRTABLE_TOKEN', '')
 REFRESH_INTERVAL_MINUTES = int(os.environ.get('REFRESH_INTERVAL_MINUTES', '30'))
@@ -230,6 +230,10 @@ def generate_placemark(record):
     status_display = escape(str(status)) if status else 'No status'
     description_parts = [f"<b>Zoning Status:</b> {status_display}<br/>"]
     description_parts.append(f"<b>Coordinates:</b> {lat}, {lon}<br/>")
+    
+    # Add link to Airtable record
+    airtable_record_url = f"https://airtable.com/{AIRTABLE_BASE_ID}/{AIRTABLE_TABLE_NAME}/{record_id}"
+    description_parts.append(f"<br/><a href='{airtable_record_url}' target='_blank'>📋 View in Airtable</a><br/><br/>")
     
     # Add other fields to description
     excluded_fields = ['Latitude and Longitude', 'Zoning Status', 'Name', 'Project Name', 'Site Name', 'Address']
