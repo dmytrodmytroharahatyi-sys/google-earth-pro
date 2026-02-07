@@ -18,6 +18,8 @@ AIRTABLE_TOKEN=patqR9ByQIKeyzjcO.7eabbc1c8af38378316e098d193a4a9fa09f304a99f062e
 REFRESH_INTERVAL_MINUTES=30
 ```
 
+**🔒 CRITICAL:** Set both `AUTH_USERNAME` and `AUTH_PASSWORD` in Vercel! Without them, the site will be unprotected.
+
 ## Step 2: Deploy
 
 Push your code to GitHub or run:
@@ -29,6 +31,15 @@ vercel --prod
 ## Step 3: Test
 
 Visit your Vercel URL - you should see a login prompt. Enter your credentials.
+
+```bash
+# Test with PowerShell
+$cred = Get-Credential
+Invoke-WebRequest -Uri "https://your-project.vercel.app/" -Credential $cred
+
+# Or with curl (if installed)
+curl -u username:password https://your-project.vercel.app/
+```
 
 ## Step 4: Use in Google Earth Pro
 

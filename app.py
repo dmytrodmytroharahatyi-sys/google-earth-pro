@@ -4,10 +4,12 @@ Generates dynamic KML with NetworkLink support for automatic updates
 """
 
 from flask import Flask, Response, request
+from functools import wraps
 import requests
 import os
 from datetime import datetime
 from xml.sax.saxutils import escape
+import base64
 
 # Load environment variables from .env file if present (for local development)
 try:
@@ -19,6 +21,10 @@ except ImportError:
 
 app = Flask(__name__)
 
+# Authentication Configuration
+AUTH_USERNAME = os.environ.get('AUTH_USERNAME', 'admin')
+AUTH_PASSWORD = os.environ.get('AUTH_PASSWORD', '')
+
 # Airtable Configuration
 AIRTABLE_BASE_ID = os.environ.get('AIRTABLE_BASE_ID', 'appZOdJaRPiwcygdR')
 AIRTABLE_TABLE_NAME = os.environ.get('AIRTABLE_TABLE_NAME', 'Table 1')
@@ -27,6 +33,44 @@ REFRESH_INTERVAL_MINUTES = int(os.environ.get('REFRESH_INTERVAL_MINUTES', '30'))
 
 # Airtable API endpoint
 AIRTABLE_API_URL = f'https://api.airtable.com/v0/{AIRTABLE_BASE_ID}/{AIRTABLE_TABLE_NAME}'
+
+
+def check_auth(username, password):
+    """
+    Check if username/password combination is valid
+    """
+    return username == AUTH_USERNAME and password == AUTH_PASSWORD
+
+
+def authenticate():
+    """
+    Send 401 response to request authentication
+    """
+    return Response(
+        'Authentication required. Please provide valid credentials.',
+        401,
+        {'WWW-Authenticate': 'Basic realm="Secure Area"'}
+    )
+
+
+def requires_auth(f):
+    """
+    Decorator to require HTTP Basic Authentication for routes
+    """
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        # Skip authentication if AUTH_PASSWORD is not set (development mode)
+        if not AUTH_PASSWORD:
+            return f(*args, **kwargs)
+        
+        auth = request.authorization
+        
+        # If no authorization header or invalid credentials
+        if not auth or not check_auth(auth.username, auth.password):
+            return authenticate()
+        
+        return f(*args, **kwargs)
+    return decorated
 
 # Status to color mapping (Google Earth KML color format: aabbggrr)
 # Colors chosen for high visibility and standard status indicators
@@ -357,6 +401,7 @@ def generate_network_link_kml(base_url):
 
 
 @app.route('/')
+@requires_auth
 def index():
     """
     Simple status page
@@ -450,6 +495,7 @@ def index():
 
 
 @app.route('/kml')
+@requires_auth
 def network_link_kml():
     """
     Root KML with NetworkLink - this is what users load into Google Earth
@@ -461,6 +507,7 @@ def network_link_kml():
 
 
 @app.route('/kml/data')
+@requires_auth
 def data_kml():
     """
     Dynamic KML data endpoint - fetched automatically by NetworkLink
@@ -488,6 +535,7 @@ def data_kml():
 
 
 @app.route('/webhook/refresh', methods=['POST'])
+@requires_auth
 def webhook_refresh():
     """
     Optional webhook endpoint for triggering immediate refresh
@@ -508,6 +556,7 @@ def webhook_refresh():
 
 
 @app.route('/health')
+@requires_auth
 def health_check():
     """
     Health check endpoint for monitoring
