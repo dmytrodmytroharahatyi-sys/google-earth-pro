@@ -1,0 +1,13 @@
+{
+  "name": "google-earth-kml-service",
+  "version": "1.0.0",
+  "description": "Google Earth KML service with Airtable integration and password protection",
+  "private": true,
+  "dependencies": {
+    "next": "^14.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "dev": "python app.py"
+  }
+}

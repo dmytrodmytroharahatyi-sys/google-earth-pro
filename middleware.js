@@ -1,41 +1,53 @@
 /**
- * Vercel Edge Middleware for Basic Authentication
- * Protects all KML endpoints with username/password
+ * Vercel Edge Middleware - Basic Authentication
+ * Protects all routes with username/password authentication
  */
 
+import { NextResponse } from 'next/server';
+
 export const config = {
-    matcher: ['/kml', '/kml/data', '/webhook/:path*'],
+  matcher: '/(.*)',
 };
 
-export default function middleware(req) {
-    const basicAuth = req.headers.get('authorization');
-    const url = req.nextUrl;
+export function middleware(req) {
+  // Get credentials from environment variables
+  const AUTH_USERNAME = process.env.AUTH_USERNAME || 'admin';
+  const AUTH_PASSWORD = process.env.AUTH_PASSWORD;
 
-    // Get credentials from environment variables
-    const USERNAME = process.env.BASIC_AUTH_USER || 'admin';
-    const PASSWORD = process.env.BASIC_AUTH_PASSWORD || '';
+  // Skip authentication if password is not set (for development)
+  if (!AUTH_PASSWORD) {
+    console.warn('AUTH_PASSWORD not set - authentication is disabled!');
+    return NextResponse.next();
+  }
 
-    // If no password is set, allow access (development mode)
-    if (!PASSWORD) {
-        return;
-    }
+  // Get the authorization header
+  const authHeader = req.headers.get('authorization');
 
-    // Check if authorization header is present
-    if (basicAuth) {
-        const authValue = basicAuth.split(' ')[1];
-        const [user, pwd] = atob(authValue).split(':');
-
-        // Verify credentials
-        if (user === USERNAME && pwd === PASSWORD) {
-            return; // Allow access
-        }
-    }
-
-    // Authentication failed or not provided
-    return new Response('Authentication required', {
-        status: 401,
-        headers: {
-            'WWW-Authenticate': 'Basic realm="Secure Area"',
-        },
+  // If no auth header, request authentication
+  if (!authHeader) {
+    return new NextResponse('Authentication required', {
+      status: 401,
+      headers: {
+        'WWW-Authenticate': 'Basic realm="Secure Area"',
+      },
     });
+  }
+
+  // Parse the authorization header
+  const auth = authHeader.split(' ')[1];
+  const [username, password] = Buffer.from(auth, 'base64').toString().split(':');
+
+  // Verify credentials
+  if (username === AUTH_USERNAME && password === AUTH_PASSWORD) {
+    // Authentication successful
+    return NextResponse.next();
+  }
+
+  // Authentication failed
+  return new NextResponse('Invalid credentials', {
+    status: 401,
+    headers: {
+      'WWW-Authenticate': 'Basic realm="Secure Area"',
+    },
+  });
 }

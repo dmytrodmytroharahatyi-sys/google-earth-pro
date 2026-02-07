@@ -4,5 +4,10 @@
   "routes": [{"src": "/(.*)", "dest": "app.py"}],
   "env": {
     "REFRESH_INTERVAL_MINUTES": "30"
+  },
+  "functions": {
+    "app.py": {
+      "memory": 1024
+    }
   }
 }
